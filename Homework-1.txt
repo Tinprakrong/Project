@@ -1,0 +1,53 @@
+# รหัส: 6521716026 ชื่อ-นามสกุล: นายภูวดล ถิ่นประครอง #
+
+import pandas as pd
+import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+import warnings
+
+warnings.filterwarnings('ignore')
+
+#1. โหลดข้อมูล (Training Data)
+# 'IRIs_test.csv' เป็นชุดข้อมูลฝึก (Training Set) 
+data = pd.read_csv('IRIs_test.csv')
+
+# 2. เตรียมข้อมูลสำหรับโมเดล KNN
+# กำหนดคุณลักษณะ (Freatures, X) และป้ายกำกับ (Target, Y)
+# X: SL, SW, PL, PW
+# Y: species
+x = data.drop('species',axis=1) # คุณลักษณะ (Freatures) [cite: 15]
+y = data['species'] # ป้ายกำกับ (Target) [cite: 15]
+
+#ปรับมิติให้เป็น numpy array
+X = x.values.reshape(-1,4) # Freatures เป็น 2 มิติ [cite: 15]
+Y = y.values.reshape(-1,1) # Target เป็น 2 มิติ (scikit-learn จะแจ้งเตือนให้ใช้ 1 มิติ) [cite: 15]
+
+# ข้อมูลใหม่ที่ต้องการทำนาย (Test Instance)
+# SL=5.8, SW=2.9, PL=2.9, PW=0.9
+Test_new = np.array([[5.8, 2.9, 2.9, 0.9]])
+
+# 3. สร้างและฝึกโมเดล KNN
+# กำหนดค่า k ที่ต้องการ: k = 3
+k_neighbors = 3
+
+# สร้างตัวจำแนกประเภท KNN
+knn_model = KNeighborsClassifier(n_neighbors=k_neighbors)
+
+# ฝึกโมเดลด้วยข้อมูลฝึก X และ Y
+# แม้ Y จะเป็น 2D array, scikit-learn จะทำการแปลงภายใน
+knn_model.fit(X, Y)
+
+# 4. ทำนายประเภทของข้อมูลใหม่
+# ทำนายประเภทดอกไม้ของข้อมูลใหม่ Test_new
+prediction = knn_model.predict(Test_new)
+
+# 5. แสดงผลลัพธ์
+print(f"ขนาดชุดข้อมูลฝึก (X): {X.shape}")
+print(f"ค่า k ที่ใช้ในโมเดล: {k_neighbors}")
+print(f"ข้อมูลใหม่ที่ต้องการทำนาย (Test Instance): {Test_new[0]}")
+print(f"\nผลการทำนายประเภทดอกไม้: {prediction[0]}")
+
+# หากต้องการดูเพื่อนบ้านที่ใกล้ที่สุด 3 ตัวและระยะทาง (เฉพาะจุดเดียว)
+distances, indices = knn_model.kneighbors(Test_new)
+print(f"\nระยะทางเพื่อนบ้านที่ใกล้ที่สุด 3 อันดับ: {distances[0]}")
+print(f"ประเภทเพื่อนบ้านที่ใกล้ที่สุด 3 อันดับ: {y.iloc[indices[0]].values}")
